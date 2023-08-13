@@ -382,7 +382,7 @@ include $(srctree)/scripts/subarch.include
 # Default value for CROSS_COMPILE is not to prefix executables
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 ARCH		?= arm
-CROSS_COMPILE	?= /mnt/disk/210/toolchain/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+CROSS_COMPILE	?= /home/wwp/bin/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf-develop-11.0/bin/arm-linux-gnueabihf-
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
