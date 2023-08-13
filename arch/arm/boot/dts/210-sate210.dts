@@ -1,0 +1,320 @@
+// SPDX-License-Identifier: GPL-2.0
+
+/dts-v1/;
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+#include "210.dtsi"
+
+/ {
+	model = "sate210 based on S5PV210";
+	compatible = "samsung,s5pv210";
+
+	chosen {
+		bootargs = "console=ttySAC3 noinitrd root=/dev/mmcblk0p1 rootfstype=squashfs rootwait init=/linuxrc ignore_loglevel earlyprintk";
+	};
+
+	memory@20000000 {
+		device_type = "memory";
+		reg = <0x20000000 0x10000000
+			   0x40000000 0x10000000>;
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			size = <0x4000000>;
+			linux,cma-default;
+		};
+	};
+
+	210_misc {
+		compatible = "210,misc";
+	};
+
+	ethernet@88000000 {
+		compatible = "davicom,dm9000";
+		reg = <0x88000000 0x2 0x88000008 0x2>;
+		interrupt-parent = <&gph0>;
+		interrupts = <0 IRQ_TYPE_LEVEL_HIGH>;
+		local-mac-address = [00 00 de ad be ef];
+		davicom,no-eeprom;
+		pinctrl-names = "default";
+		pinctrl-0 = <&xm0_csn1 &xm0_oen &xm0_wen &xm0_addr2 &xm0_data>;
+		assigned-clocks = <&clocks CLK_SROMC>;
+		assigned-clock-rates = <0>;
+	};
+
+	sound {
+		compatible = "samsung,smdk-wm8960";
+		clocks = <&clocks FOUT_EPLL>;
+		clock-names = "fout_epll";
+		samsung,audio-codec = <&wm8960>, <&hdmi>;
+		samsung,i2s-controller = <&i2s0>;
+		samsung,model = "s5pv210-wm8960";
+	};
+
+	fixed_33V: fixed_regulator@0 {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-3.3V";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
+	fixed_11V: fixed_regulator@1 {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-1.1V";
+		regulator-min-microvolt = <1100000>;
+		regulator-max-microvolt = <1100000>;
+		regulator-always-on;
+	};
+};
+
+&xusbxti {
+	clock-frequency = <24000000>;
+};
+
+&uart0 {
+	pinctrl-0 = <&uart0_data>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&uart1 {
+	pinctrl-0 = <&uart1_data>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&uart2 {
+	pinctrl-0 = <&uart2_data>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&uart3 {
+	pinctrl-0 = <&uart3_data>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&sdhci0 {
+	bus-width = <8>;
+	non-removable;
+	pinctrl-0 = <&sd0_clk &sd0_cmd &sd0_cd &sd0_bus4 &sd0_bus8>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	assigned-clocks = <&clocks MOUT_MMC0>, <&clocks MOUT_MMC1>;
+	assigned-clock-parents = <&clocks MOUT_MPLL>, <&clocks MOUT_MPLL>;
+};
+
+&sdhci2 {
+	bus-width = <4>;
+	pinctrl-0 = <&sd2_clk &sd2_cmd &sd2_cd &sd2_bus4>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	assigned-clocks = <&clocks MOUT_MMC2>;
+	assigned-clock-parents = <&clocks MOUT_MPLL>;
+};
+
+&sdhci3 {
+	bus-width = <4>;
+	pinctrl-0 = <&sd3_clk &sd3_cmd &sd3_cd &sd3_bus4>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	assigned-clocks = <&clocks MOUT_MMC3>;
+	assigned-clock-parents = <&clocks MOUT_MPLL>;
+};
+
+&hsotg {
+	dr_mode = "peripheral";
+	//total_fifo_size=7808
+	g-rx-fifo-size = <2048>;
+	g-np-tx-fifo-size = <256>;
+	g-tx-fifo-size = <256 256 256 256 256 256 256 256 
+					  256 256 256 256 256 256 256>;
+	status = "okay";
+};
+
+&usbphy {
+	status = "okay";
+};
+
+&ehci {
+	status = "okay";
+};
+
+&i2c1 {
+	samsung,i2c-sda-delay = <100>;
+	samsung,i2c-max-bus-freq = <100000>;
+	samsung,i2c-slave-addr = <0x10>;
+	status = "okay";
+
+	wm8960: wm8960@1a {
+		compatible = "wlf,wm8960";
+		reg = <0x1a>;
+		wlf,shared-lrclk;
+		wlf,gpio-cfg = <1 0>;
+		wlf,hp-cfg = <0 0 0>;
+	};
+};
+
+&clk_audss {
+	assigned-clocks = <&clk_audss CLK_MOUT_AUDSS>;
+	assigned-clock-parents = <&clocks FOUT_EPLL>;
+};
+
+&i2s0 {
+	#clock-cells = <1>;
+	status = "okay";
+};
+
+&i2c3 {
+	samsung,i2c-sda-delay = <100>;
+	samsung,i2c-max-bus-freq = <100000>;
+	samsung,i2c-slave-addr = <0x10>;
+	status = "okay";
+};
+
+&hdmi {
+	hpd-gpios = <&gph1 5 GPIO_ACTIVE_HIGH>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&hdmi_hpd>;
+	vdd-supply = <&fixed_11V>;
+	vdd_osc-supply = <&fixed_33V>;
+	vdd_pll-supply = <&fixed_11V>;
+	ddc = <&i2c1>;
+	status = "okay";
+
+	assigned-clocks = <&clocks CLK_HDMI>, <&clocks SCLK_HDMI>;
+	assigned-clock-rates = <0>, <0>;
+};
+
+&hdmicec {
+	pinctrl-names = "default";
+	pinctrl-0 = <&hdmi_cec>;
+	status = "okay";
+
+	assigned-clocks = <&clocks CLK_HDMI>;
+	assigned-clock-rates = <0>;
+};
+
+&mixer {
+	status = "okay";
+
+	assigned-clocks = <&clocks CLK_MIXER>, <&clocks CLK_HDMI>,
+					<&clocks CLK_VP>, <&clocks SCLK_MIXER>;
+	assigned-clock-rates = <0>, <0>,
+					<0>, <0>;
+};
+
+&fimd {
+	pinctrl-0 = <&lcd_clk &lcd_data24>;
+	pinctrl-names = "default";
+	status = "okay";
+	
+	/* The maximum frequency of VCLK is 100Mhz(pad:50pf). */
+	assigned-clocks = <&clocks MOUT_FIMD>,
+					<&clocks FOUT_VPLL>,
+					<&clocks SCLK_FIMD>, <&clocks CLK_FIMD>;
+	assigned-clock-parents = <&clocks MOUT_VPLL>;
+	assigned-clock-rates = <0>, 
+					<74250000>,
+					<0>, <0>;
+
+	display-timings {
+		native-mode = <&timing0>;
+		
+		/* timing0: timing {
+			clock-frequency = <40000000>;
+			hactive = <800>;
+			vactive = <600>;
+			hfront-porch = <40>;
+			hsync-len = <128>;
+			hback-porch = <88>;
+			vfront-porch = <1>;
+			vsync-len = <4>;
+			vback-porch = <23>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+		}; */
+		
+		/* timing0: timing {
+			clock-frequency = <65000000>;
+			hactive = <1024>;
+			vactive = <768>;
+			hfront-porch = <24>;
+			hsync-len = <136>;
+			hback-porch = <160>;
+			vfront-porch = <3>;
+			vsync-len = <6>;
+			vback-porch = <29>;
+			hsync-active = <1>;
+			vsync-active = <1>;
+		}; */
+		
+		timing0: timing {
+			clock-frequency = <74250000>;
+			hactive = <1280>;
+			vactive = <720>;
+			hfront-porch = <110>;
+			hsync-len = <40>;
+			hback-porch = <220>;
+			vfront-porch = <5>;
+			vsync-len = <5>;
+			vback-porch = <20>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+		};
+		
+		/* timing0: timing {
+			clock-frequency = <108000000>;
+			hactive = <1280>;
+			vactive = <1024>;
+			hfront-porch = <48>;
+			hsync-len = <112>;
+			hback-porch = <248>;
+			vfront-porch = <1>;
+			vsync-len = <3>;
+			vback-porch = <38>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+		}; */
+		
+		/* timing0: timing {
+			clock-frequency = <106500000>;
+			hactive = <1440>;
+			vactive = <900>;
+			hfront-porch = <80>;
+			hsync-len = <152>;
+			hback-porch = <232>;
+			vfront-porch = <3>;
+			vsync-len = <6>;
+			vback-porch = <25>;
+			hsync-active = <1>;
+			vsync-active = <0>;
+		}; */
+		
+		/* timing0: timing {
+			clock-frequency = <148500000>;
+			hactive = <1920>;
+			vactive = <1080>;
+			hfront-porch = <88>;
+			hsync-len = <44>;
+			hback-porch = <148>;
+			vfront-porch = <4>;
+			vsync-len = <5>;
+			vback-porch = <36>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+		}; */
+	};
+};
